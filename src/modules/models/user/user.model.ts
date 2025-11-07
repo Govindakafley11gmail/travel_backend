@@ -1,20 +1,24 @@
+// src/models/User.ts
 import { DataTypes, Model, Optional } from "sequelize";
-import sequelize from "../../../config/db"; // adjust path
+import sequelize from "../../../config/db";
 
 // Define attributes
-interface UserAttributes {
+export interface UserAttributes {
   id: number;
   name: string;
   email: string;
   password: string;
   role: string;
   status: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // For creation, id is optional
-interface UserCreationAttributes extends Optional<UserAttributes, "id" | "role" | "status"> {}
+export interface UserCreationAttributes extends Optional<UserAttributes, "id" | "status"> {}
 
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
+  // Declare all fields so TypeScript knows they exist
   public id!: number;
   public name!: string;
   public email!: string;
@@ -22,6 +26,7 @@ class User extends Model<UserAttributes, UserCreationAttributes> implements User
   public role!: string;
   public status!: string;
 
+  // Timestamps (optional but recommended)
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }

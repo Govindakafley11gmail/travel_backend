@@ -7,6 +7,8 @@ interface UserIProps {
     id?: number;
     name?: string;
     email?: string;
+    role?: string
+    status?:string
     // Add other user properties as needed
 }
 interface TokenResponse {
@@ -17,8 +19,8 @@ const INACTIVITY_TIMEOUT = 1000000 * 1000; // 10 seconds
 export const ACCESS_TOKEN = async (data: Partial<UserIProps>):Promise<TokenResponse>=>{
     const payload = {...data };
 
-    const accessToken =  await jwt.sign(payload, secretKey, { expiresIn: '10000s' })
-    const refreshToken = jwt.sign(payload, secretKey, { expiresIn: '10000s' });
+    const accessToken =  await jwt.sign(payload, secretKey, { expiresIn: '10s' })
+    const refreshToken = jwt.sign(payload, secretKey, { expiresIn: '10s' });
     return { accessToken, refreshToken };
 }
 
@@ -31,8 +33,8 @@ export const refreshTokenHandler = async (refreshToken: string) => {
     const payload = jwt.verify(refreshToken, secretKey);
     const  {dataValues} = payload as JwtPayload
     
-    const newAccessToken = jwt.sign(dataValues, secretKey, { expiresIn: '20000s' });
-    const newRefreshToken = jwt.sign(dataValues, secretKey, { expiresIn: '60000s' });
+    const newAccessToken = jwt.sign(dataValues, secretKey, { expiresIn: '10s' });
+    const newRefreshToken = jwt.sign(dataValues, secretKey, { expiresIn: '10s' });
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   } catch (error) {
      throw new UnauthorizedError(`${error}`); 
@@ -67,7 +69,7 @@ export const VERIFY_TOKEN = async (req: Request, res: Response, next: NextFuncti
         res.cookie("accessToken", accessToken, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
-          maxAge: 15 * 60 * 1000,
+          maxAge: 5 * 60 * 1000,
           sameSite: "strict",
         });
         res.cookie("refreshToken", newRefreshToken, {

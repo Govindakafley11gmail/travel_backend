@@ -5,10 +5,14 @@ const userService = new UserService();
 
 class UserController {
   async createUser(req: Request, res: Response) {
+    console.log("hello world")
     try {
       const { name, email, password } = req.body;
       const user = await userService.createUser(name, email, password, req.body.role, req.body.status);
-      res.status(201).json(user);
+      res.status(201).json({
+        status: "success",
+        message: "User created successfully",
+      });
     } catch (error) {
       res.status(401).json({ error: error instanceof Error ? error.message : 'An error occurred' });
     }
@@ -17,7 +21,11 @@ class UserController {
   async getAllUsers(req: Request, res: Response) {
     try {
       const users = await userService.getAllUsers();
-      res.json(users);
+      res.json({
+        status: "success",
+        message: "User fetch successfully",
+        data: users
+      });
     } catch (error) {
       res.status(500).json({ error });
     }
@@ -37,8 +45,8 @@ class UserController {
   async updateUser(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { name, email } = req.body;
-      const user = await userService.updateUser(Number(id), { name, email });
+      const { name, email, role, status,password } = req.body;
+      const user = await userService.updateUser(Number(id), { name, email, role, status, password });
       res.json(user);
     } catch (error) {
       res.status(500).json({ error: error });
@@ -57,6 +65,7 @@ class UserController {
 
   async loginUser(req: Request, res: Response) {
     try {
+      console.log(req.body)
       const { email, password } = req.body;
 
       // Login logic
@@ -64,14 +73,14 @@ class UserController {
 
       // Set cookies
       res.cookie("accessToken", accessToken, {
-        httpOnly: true,       // not accessible via JavaScript
+        httpOnly: false,       // not accessible via JavaScript
         secure: process.env.NODE_ENV === "production", // HTTPS only in prod
         maxAge: 15 * 60 * 1000, // 15 minutes
         sameSite: "strict",
       });
 
       res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
+        httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         sameSite: "strict",
