@@ -3,98 +3,95 @@ import UserService from "../../handler/user/user.handler";
 
 const userService = new UserService();
 
-class UserController {
-  async createUser(req: Request, res: Response) {
-    console.log("hello world")
+export const UserController = {
+  createUser: async (req: Request, res: Response) => {
     try {
-      const { name, email, password } = req.body;
-      const user = await userService.createUser(name, email, password, req.body.role, req.body.status);
-      res.status(201).json({
-        status: "success",
-        message: "User created successfully",
-      });
-    } catch (error) {
-      res.status(401).json({ error: error instanceof Error ? error.message : 'An error occurred' });
+      const user = await userService.createUser(req.body);
+      res.status(201).json({ success: true, message: "User created successfully", data: user });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
     }
-  }
+  },
 
-  async getAllUsers(req: Request, res: Response) {
+  updateUser: async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const user = await userService.updateUser(id, req.body);
+      res.status(200).json({ success: true, message: "User updated successfully", data: user });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  },
+
+  getAllUsers: async (req: Request, res: Response) => {
     try {
       const users = await userService.getAllUsers();
-      res.json({
-        status: "success",
-        message: "User fetch successfully",
-        data: users
-      });
-    } catch (error) {
-      res.status(500).json({ error });
+      res.status(200).json({ success: true, data: users });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
     }
-  }
+  },
 
-  async getUserById(req: Request, res: Response) {
+  getUserById: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-      const user = await userService.getUserById(Number(id));
-      if (!user) return res.status(404).json({ error: "User not found" });
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({ error: error });
+      const id = Number(req.params.id);
+      const user = await userService.getUserById(id);
+      res.status(200).json({ success: true, data: user });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
     }
-  }
+  },
 
-  async updateUser(req: Request, res: Response) {
+  deleteUser: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-      const { name, email, role, status,password } = req.body;
-      const user = await userService.updateUser(Number(id), { name, email, role, status, password });
-      res.json(user);
-    } catch (error) {
-      res.status(500).json({ error: error });
+      const id = Number(req.params.id);
+      await userService.deleteUser(id);
+      res.status(200).json({ success: true, message: "User deleted successfully" });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
     }
-  }
-
-  async deleteUser(req: Request, res: Response) {
+  },
+  loginUser: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-      await userService.deleteUser(Number(id));
-      res.json({ message: "User deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ error: error });
-    }
-  }
-
-  async loginUser(req: Request, res: Response) {
-    try {
-      console.log(req.body)
       const { email, password } = req.body;
 
-      // Login logic
-      const { accessToken, refreshToken } = await userService.loginUser(email, password);
+      // loginUser returns { accessToken, refreshToken }
+      const token = await userService.loginUser(email, password);
 
-      // Set cookies
-      res.cookie("accessToken", accessToken, {
-        httpOnly: false,       // not accessible via JavaScript
-        secure: process.env.NODE_ENV === "production", // HTTPS only in prod
-        maxAge: 15 * 60 * 1000, // 15 minutes
+      // Set cookies (HTTP Only, secure in production)
+      res.cookie("accessToken", token.accessToken, {
+        httpOnly: false,      // cannot be accessed by JS
+        secure: process.env.NODE_ENV === "production" ? false : true, // only HTTPS in prod
         sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24, // 1 day
+        path: "/",           // cookie accessible on all routes
       });
 
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: false,
+      res.cookie("refreshToken", token.refreshToken, {
+        httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        sameSite: "strict",
+        // sameSite: "Strict",
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        path: "/",
       });
 
-      // Respond with message only (tokens are in cookies)
-      res.json({ message: "Login successful" });
+      // Respond with minimal info (you could also skip sending tokens in body)
+      res.status(200).json({ success: true, message: "Login successful" });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error.message });
+    }
+  },
+  updateUserPassword: async (req: Request, res: Response): Promise<void> => {
+    console.log("🔒 Password update request received");
+    try {
+      const { password, newpassword, email, identificationNo } = req.body;
+      console.log("🔒 Request body:", req.body);
+      await userService.updateUserPassword(email, password, newpassword, identificationNo);
 
-    } catch (error: unknown) {
-      res.status(401).json({
-        error: error instanceof Error ? error.message : "An error occurred",
-      });
+      res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error: any) {
+      console.error("❌ Error updating password:", error);
+      res.status(400).json({ success: false, error: error.message });
     }
   }
-}
-
-export default UserController;
+};

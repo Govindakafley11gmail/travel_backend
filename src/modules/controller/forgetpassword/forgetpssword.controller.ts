@@ -5,22 +5,22 @@ import { ForgetPsswordHandler } from "../../handler/forgetpassword/forgetpasswor
 const forgetHandler = new ForgetPsswordHandler();
 
 export class ForgetPasswordController {
-    async forgetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
-        try {
-            const { email, password, passwordConfirm } = req.body;
+    // async forgetPassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    //     try {
+    //         const { email, password, passwordConfirm } = req.body;
 
-            const user = await forgetHandler.forgetPassword(email,
-                password,
-                passwordConfirm);
+    //         const user = await forgetHandler.forgetPassword(email,
+    //             password,
+    //             passwordConfirm);
 
-            res.status(200).json({
-                success: true,
-                message: "Password reset successfully",
+    //         res.status(200).json({
+    //             success: true,
+    //             message: "Password reset successfully",
 
-            });
-        } catch (error: any) {
-            next(error);
-        }
-    }
+    //         });
+    //     } catch (error: any) {
+    //         next(error);
+    //     }
+    // }
 }
 

@@ -65,6 +65,18 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
+      travelType: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      mobileNo: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      remarks: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,

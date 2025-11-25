@@ -15,6 +15,9 @@ export interface TripAttributes {
   status?: string;
   isTrending?: boolean;
   category?: string;
+  images?: string[];
+  slug?:string;
+  isFirsttime?:boolean
 }
 
 // For creation, id is optional
@@ -66,9 +69,22 @@ Trip.init(
       allowNull: false,
       defaultValue: false,
     },
+    isFirsttime:{
+        type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     category: {
       type: DataTypes.STRING(100),
       allowNull: true,
+    },
+   images: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+    },
+    slug:{
+       type: DataTypes.STRING(100),
+      allowNull: false,
     }
   },
   {

@@ -16,7 +16,10 @@ interface BookingAttributes {
     email: string;
     name: string;
     paymentStatus: string;
+    travelType: string;
+    mobileNo: string;
     specialRequest?: string;
+    remarks?: string;
 }
 
 interface BookingCreationAttributes extends Optional<BookingAttributes, "id"> { }
@@ -35,7 +38,12 @@ export class Booking extends Model<BookingAttributes, BookingCreationAttributes>
      adultNum!: number;
      childNum!: number;
      paymentStatus!: string;
+     travelType!: string;
+     mobileNo!: string;
      specialRequest?: string;
+     remarks?: string;
+        readonly createdAt!: Date;
+        readonly updatedAt!: Date;
 }
 
 Booking.init(
@@ -94,8 +102,21 @@ Booking.init(
             type: DataTypes.STRING,
             defaultValue: "pending",
         },
+        travelType:{
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        mobileNo: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
         specialRequest: {
             type: DataTypes.TEXT,
+            allowNull: true,
+        },
+        remarks: {
+            type: DataTypes.TEXT,
+            allowNull: true,
         },
     },
     {

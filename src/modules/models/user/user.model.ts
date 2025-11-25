@@ -1,4 +1,3 @@
-// src/models/User.ts
 import { DataTypes, Model, Optional } from "sequelize";
 import sequelize from "../../../config/db";
 
@@ -10,25 +9,28 @@ export interface UserAttributes {
   password: string;
   role: string;
   status: string;
+  permissions?: Record<string, string[]>; // object like { user: ["create","list"] }
+  permissionsList?: string[];            // flat array ["user:create", "booking:list"]
   createdAt?: Date;
   updatedAt?: Date;
+  identificationNo?: string;
 }
 
 // For creation, id is optional
-export interface UserCreationAttributes extends Optional<UserAttributes, "id" | "status"> {}
+export interface UserCreationAttributes extends Optional<UserAttributes, "id" | "status" | "permissions" | "permissionsList"> {}
 
 class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
-  // Declare all fields so TypeScript knows they exist
-  public id!: number;
-  public name!: string;
-  public email!: string;
-  public password!: string;
-  public role!: string;
-  public status!: string;
-
-  // Timestamps (optional but recommended)
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
+  id!: number;
+  name!: string;
+  email!: string;
+  password!: string;
+  role!: string;
+  status!: string;
+  permissions?: Record<string, string[]>;
+  permissionsList?: string[];
+  identificationNo?: string;
+  readonly createdAt!: Date;
+  readonly updatedAt!: Date;
 }
 
 User.init(
@@ -38,32 +40,14 @@ User.init(
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true,
-      },
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    role: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: "user",
-    },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: "active",
-    },
+    name: { type: DataTypes.STRING(100), allowNull: false },
+    email: { type: DataTypes.STRING(100), allowNull: false, unique: true, validate: { isEmail: true } },
+    identificationNo: { type: DataTypes.STRING(50), allowNull: true },
+    password: { type: DataTypes.STRING, allowNull: false },
+    role: { type: DataTypes.STRING, allowNull: false, defaultValue: "user" },
+    status: { type: DataTypes.STRING, allowNull: false, defaultValue: "active" },
+    permissions: { type: DataTypes.JSON, allowNull: true },
+    permissionsList: { type: DataTypes.JSON, allowNull: true },
   },
   {
     sequelize,

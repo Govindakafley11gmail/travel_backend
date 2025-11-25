@@ -4,8 +4,7 @@ import Trip, { TripAttributes, TripCreationAttributes } from "../../models/trips
 
 class TripsRepository {
   // Define your methods for interacting with the Trip model here
-  async createTrip(tripData:TripCreationAttributes): Promise<Trip> {
-    console.log("Creating trip with data:", tripData); // Debug log
+  async createTrip(tripData: TripCreationAttributes): Promise<Trip> {
     return Trip.create(tripData);
   }
 
@@ -13,8 +12,14 @@ class TripsRepository {
     return Trip.findByPk(id);
   }
 
-  async getAllTrips(): Promise<Trip[]> {
-    return Trip.findAll();
+  async getAllTrips(filters?: { isFirsttime?: boolean, category?: string }): Promise<Trip[]> {
+    const where: any = {};
+    if (filters?.isFirsttime) where.isFirsttime = filters.isFirsttime;
+    if (filters?.category) where.category = filters.category;
+    return Trip.findAll({
+      where,
+      order: [["createdAt", "DESC"]],
+    });
   }
 
   async updateTrip(id: number, tripData: Partial<TripAttributes>): Promise<[number, Trip[]] | null> {

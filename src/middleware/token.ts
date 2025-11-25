@@ -9,6 +9,8 @@ interface UserIProps {
     email?: string;
     role?: string
     status?:string
+    permissions?: Record<string, string[]>;
+    permissionsList?: string[];
     // Add other user properties as needed
 }
 interface TokenResponse {
@@ -19,8 +21,8 @@ const INACTIVITY_TIMEOUT = 1000000 * 1000; // 10 seconds
 export const ACCESS_TOKEN = async (data: Partial<UserIProps>):Promise<TokenResponse>=>{
     const payload = {...data };
 
-    const accessToken =  await jwt.sign(payload, secretKey, { expiresIn: '10s' })
-    const refreshToken = jwt.sign(payload, secretKey, { expiresIn: '10s' });
+    const accessToken =  await jwt.sign(payload, secretKey, { expiresIn: '100000s' })
+    const refreshToken = jwt.sign(payload, secretKey, { expiresIn: '100000s' });
     return { accessToken, refreshToken };
 }
 
@@ -33,8 +35,8 @@ export const refreshTokenHandler = async (refreshToken: string) => {
     const payload = jwt.verify(refreshToken, secretKey);
     const  {dataValues} = payload as JwtPayload
     
-    const newAccessToken = jwt.sign(dataValues, secretKey, { expiresIn: '10s' });
-    const newRefreshToken = jwt.sign(dataValues, secretKey, { expiresIn: '10s' });
+    const newAccessToken = jwt.sign(dataValues, secretKey, { expiresIn: '10000s' });
+    const newRefreshToken = jwt.sign(dataValues, secretKey, { expiresIn: '10000s' });
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   } catch (error) {
      throw new UnauthorizedError(`${error}`); 

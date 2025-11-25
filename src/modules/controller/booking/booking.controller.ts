@@ -30,7 +30,6 @@ class BookingController {
         try {
             const { id } = req.params;
             const bookingData = req.body;
-            console.log("Updating booking with data:", bookingData); // Debug log
             const booking = await bookingHandler.updateBooking(Number(id), bookingData);
             res.json({
                   success: "success",

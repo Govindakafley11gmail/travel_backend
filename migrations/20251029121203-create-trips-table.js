@@ -55,6 +55,20 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      images: {
+        type: Sequelize.JSON, // store array of image URLs
+        allowNull: false,
+        defaultValue: [],
+      },
+      slug: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      isFirsttime: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

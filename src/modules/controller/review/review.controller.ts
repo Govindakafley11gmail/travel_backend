@@ -6,15 +6,15 @@ const reviewHandler = new ReviewHandler();
 
 class ReviewController {
   // ✅ Create Review
-  async createReview(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async createReview(req: Request, res: Response, next: NextFunction): Promise<any> {
     try {
-        console.log(req.body)
       const { name, email, rating, comment,status } = req.body as ReviewIProps;
 
       const response = await reviewHandler.CreateReview({ name, email, rating, comment, status });
       res.status(201).json({ success: true, message: "Review created successfully.", data: response });
     } catch (error) {
-      next(error);
+            return res.status(500).json({ error: error instanceof Error ? error.message : 'An error occurred' });
+
     }
   }
 
@@ -41,6 +41,19 @@ class ReviewController {
   async fetchAll(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const response = await reviewHandler.fetchAll();
+
+      res.status(200).json({
+        success: true,
+        message: "Reviews fetched successfully.",
+        response,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async fetchReview(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const response = await reviewHandler.fetchUserReview();
 
       res.status(200).json({
         success: true,

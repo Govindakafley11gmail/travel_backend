@@ -33,6 +33,18 @@ module.exports = {
         allowNull: false,
         defaultValue: 'active'
       },
+      identificationNo: {
+        type: Sequelize.STRING(50),
+        allowNull: true,
+      },
+      permissions: {
+        type: Sequelize.JSON,
+        allowNull: true, // can be null initially
+      },
+      permissionsList: {
+        type: Sequelize.JSON,
+        allowNull: true, // can be null initially
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -47,7 +59,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    // Drop ENUM types explicitly (important for Postgres)
     await queryInterface.dropTable('Users');
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Users_role";');
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS "enum_Users_status";');
