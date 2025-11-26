@@ -1,0 +1,99 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.UserController = void 0;
+const user_handler_1 = __importDefault(require("../../handler/user/user.handler"));
+const userService = new user_handler_1.default();
+exports.UserController = {
+    createUser: async (req, res) => {
+        try {
+            const user = await userService.createUser(req.body);
+            res.status(201).json({ success: true, message: "User created successfully", data: user });
+        }
+        catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    },
+    updateUser: async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            const user = await userService.updateUser(id, req.body);
+            res.status(200).json({ success: true, message: "User updated successfully", data: user });
+        }
+        catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    },
+    getAllUsers: async (req, res) => {
+        try {
+            const users = await userService.getAllUsers();
+            res.status(200).json({ success: true, data: users });
+        }
+        catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    },
+    getUserById: async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            const user = await userService.getUserById(id);
+            res.status(200).json({ success: true, data: user });
+        }
+        catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    },
+    deleteUser: async (req, res) => {
+        try {
+            const id = Number(req.params.id);
+            await userService.deleteUser(id);
+            res.status(200).json({ success: true, message: "User deleted successfully" });
+        }
+        catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    },
+    loginUser: async (req, res) => {
+        try {
+            const { email, password } = req.body;
+            // loginUser returns { accessToken, refreshToken }
+            const token = await userService.loginUser(email, password);
+            // Set cookies (HTTP Only, secure in production)
+            res.cookie("accessToken", token.accessToken, {
+                httpOnly: false, // cannot be accessed by JS
+                secure: process.env.NODE_ENV === "production" ? false : true, // only HTTPS in prod
+                sameSite: "strict",
+                maxAge: 1000 * 60 * 60 * 24, // 1 day
+                path: "/", // cookie accessible on all routes
+            });
+            res.cookie("refreshToken", token.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                // sameSite: "Strict",
+                maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+                path: "/",
+            });
+            // Respond with minimal info (you could also skip sending tokens in body)
+            res.status(200).json({ success: true, message: "Login successful" });
+        }
+        catch (error) {
+            res.status(400).json({ success: false, error: error.message });
+        }
+    },
+    updateUserPassword: async (req, res) => {
+        console.log("🔒 Password update request received");
+        try {
+            const { password, newpassword, email, identificationNo } = req.body;
+            console.log("🔒 Request body:", req.body);
+            await userService.updateUserPassword(email, password, newpassword, identificationNo);
+            res.status(200).json({ message: 'Password updated successfully' });
+        }
+        catch (error) {
+            console.error("❌ Error updating password:", error);
+            res.status(400).json({ success: false, error: error.message });
+        }
+    }
+};
+//# sourceMappingURL=user.controller.js.map
