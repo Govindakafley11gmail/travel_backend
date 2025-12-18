@@ -7,9 +7,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-console.log('Connecting to database with URL:', process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL);
+const databaseUrl = process.env.DATABASE_URL ||
+    'postgresql://postgres:RGUlXcYyOoBSguVVBMRckIQMxxfDdKML@postgres.railway.internal:5432/railway';
 // Option 1: Use connection string (simpler)
-const sequelize = new sequelize_1.Sequelize(process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL || '', {
+const sequelize = new sequelize_1.Sequelize(databaseUrl, {
     dialect: 'postgres',
     dialectOptions: {
         ssl: {

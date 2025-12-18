@@ -3,9 +3,11 @@ import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
 dotenv.config();
-console.log('Connecting to database with URL:', process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL);
+const databaseUrl = process.env.DATABASE_URL || 
+  'postgresql://postgres:RGUlXcYyOoBSguVVBMRckIQMxxfDdKML@postgres.railway.internal:5432/railway';
+
 // Option 1: Use connection string (simpler)
-const sequelize = new Sequelize(process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL || '', {
+const sequelize = new Sequelize(databaseUrl, {
   dialect: 'postgres',
   dialectOptions: {
     ssl: {
