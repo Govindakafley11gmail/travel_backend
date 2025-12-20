@@ -3,8 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const trips_repository_1 = __importDefault(require("../../repository/trips/trips.repository"));
 const tripupload_1 = require("../../../middleware/tripupload");
+const trips_repository_1 = __importDefault(require("../../repository/trips/trips.repository"));
 const tripRepo = new trips_repository_1.default();
 class TripController {
     // ✅ Expose Multer middleware for routes
@@ -15,14 +15,14 @@ class TripController {
      */
     async createTrip(req, res) {
         try {
-            // Extract form fields
-            // ✅ Handle file uploads
+            // ✅ Handle Cloudinary file uploads
             const files = req.files;
-            const imageUrls = files?.map(file => `/uploads/trips/${file.filename}`) || [];
+            // Get Cloudinary URLs (not local paths)
+            const imageUrls = files?.map(file => file.path) || [];
             // ✅ Prepare data for repository
             const data = {
                 ...req.body,
-                images: imageUrls,
+                images: imageUrls, // Now contains full Cloudinary URLs
             };
             // ✅ Save trip
             const trip = await tripRepo.createTrip(data);
@@ -53,19 +53,13 @@ class TripController {
                 filters.isFirsttime = isFirsttime;
             if (category)
                 filters.category = category;
-            // const blogs = await blogRepo.getAllBlogs(filters);
             const trips = await tripRepo.getAllTrips(filters);
-            // ✅ Add full URLs for images
+            // ✅ Cloudinary URLs are already complete - no need to modify
             const data = trips.map(trip => {
                 const json = trip.toJSON();
-                if (Array.isArray(json.images)) {
-                    json.images = json.images.map((img) => `${req.protocol}://${req.get("host")}${img.startsWith("/") ? "" : "/"}${img}`);
-                }
-                else if (json.images) {
-                    json.images = [`${req.protocol}://${req.get("host")}${json.images}`];
-                }
-                else {
-                    json.images = [];
+                // Ensure images is always an array
+                if (!Array.isArray(json.images)) {
+                    json.images = json.images ? [json.images] : [];
                 }
                 return json;
             });
@@ -87,16 +81,10 @@ class TripController {
             if (!trip) {
                 return res.status(404).json({ success: false, message: "Trip not found" });
             }
-            // Add full URLs for images
+            // ✅ Cloudinary URLs are already complete
             const json = trip.toJSON();
-            if (Array.isArray(json.images)) {
-                json.images = json.images.map((img) => `${req.protocol}://${req.get("host")}${img.startsWith("/") ? "" : "/"}${img}`);
-            }
-            else if (json.images) {
-                json.images = [`${req.protocol}://${req.get("host")}${json.images}`];
-            }
-            else {
-                json.images = [];
+            if (!Array.isArray(json.images)) {
+                json.images = json.images ? [json.images] : [];
             }
             res.json({ success: true, data: json });
         }
@@ -113,9 +101,10 @@ class TripController {
         try {
             const { id } = req.params;
             const tripData = { ...req.body };
-            // If images are uploaded, attach file paths
+            // ✅ If images are uploaded, use Cloudinary URLs
             if (req.files && Array.isArray(req.files)) {
-                tripData.images = req.files.map((file) => `/uploads/trips/${file.filename}`);
+                tripData.images = req.files.map((file) => file.path // Cloudinary URL
+                );
             }
             const trip = await tripRepo.updateTrip(Number(id), tripData);
             res.json({ message: "Trip updated successfully", data: trip });

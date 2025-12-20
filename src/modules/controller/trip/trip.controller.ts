@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { upload } from "../../../middleware/upload";
-import TripsRepository from "../../repository/trips/trips.repository";
 import { tripupload } from "../../../middleware/tripupload";
+import TripsRepository from "../../repository/trips/trips.repository";
+
 const tripRepo = new TripsRepository();
 
 class TripController {
@@ -15,16 +15,18 @@ class TripController {
    */
   async createTrip(req: Request, res: Response): Promise<void> {
     try {
-      // Extract form fields
-      // ✅ Handle file uploads
+      // ✅ Handle Cloudinary file uploads
       const files = req.files as Express.Multer.File[] | undefined;
-      const imageUrls = files?.map(file => `/uploads/trips/${file.filename}`) || [];
+      
+      // Get Cloudinary URLs (not local paths)
+      const imageUrls = files?.map(file => (file as any).path) || [];
 
       // ✅ Prepare data for repository
       const data = {
         ...req.body,
-        images: imageUrls,
+        images: imageUrls, // Now contains full Cloudinary URLs
       };
+
       // ✅ Save trip
       const trip = await tripRepo.createTrip(data);
 
@@ -53,20 +55,15 @@ class TripController {
       const filters: any = {};
       if (isFirsttime) filters.isFirsttime = isFirsttime;
       if (category) filters.category = category;
-      // const blogs = await blogRepo.getAllBlogs(filters);
+
       const trips = await tripRepo.getAllTrips(filters);
 
-      // ✅ Add full URLs for images
+      // ✅ Cloudinary URLs are already complete - no need to modify
       const data = trips.map(trip => {
         const json = trip.toJSON();
-        if (Array.isArray(json.images)) {
-          json.images = json.images.map(
-            (img: string) => `${req.protocol}://${req.get("host")}${img.startsWith("/") ? "" : "/"}${img}`
-          );
-        } else if (json.images) {
-          json.images = [`${req.protocol}://${req.get("host")}${json.images}`];
-        } else {
-          json.images = [];
+        // Ensure images is always an array
+        if (!Array.isArray(json.images)) {
+          json.images = json.images ? [json.images] : [];
         }
         return json;
       });
@@ -91,16 +88,10 @@ class TripController {
         return res.status(404).json({ success: false, message: "Trip not found" });
       }
 
-      // Add full URLs for images
+      // ✅ Cloudinary URLs are already complete
       const json = trip.toJSON();
-      if (Array.isArray(json.images)) {
-        json.images = json.images.map(
-          (img: string) => `${req.protocol}://${req.get("host")}${img.startsWith("/") ? "" : "/"}${img}`
-        );
-      } else if (json.images) {
-        json.images = [`${req.protocol}://${req.get("host")}${json.images}`];
-      } else {
-        json.images = [];
+      if (!Array.isArray(json.images)) {
+        json.images = json.images ? [json.images] : [];
       }
 
       res.json({ success: true, data: json });
@@ -119,10 +110,11 @@ class TripController {
       const { id } = req.params;
 
       const tripData = { ...req.body };
-      // If images are uploaded, attach file paths
+      
+      // ✅ If images are uploaded, use Cloudinary URLs
       if (req.files && Array.isArray(req.files)) {
         tripData.images = (req.files as Express.Multer.File[]).map(
-          (file) => `/uploads/trips/${file.filename}`
+          (file) => (file as any).path // Cloudinary URL
         );
       }
 
