@@ -41,7 +41,7 @@ Contact.init({
     sequelize: db_1.default,
     modelName: "Contact",
     tableName: "Contacts",
-    timestamps: true,
+    timestamps: false,
 });
 exports.default = Contact;
 //# sourceMappingURL=contactus.model.js.map
