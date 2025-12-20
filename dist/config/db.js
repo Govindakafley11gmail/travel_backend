@@ -1,47 +1,33 @@
 "use strict";
-// // 
-// import { Sequelize } from 'sequelize';
-// import dotenv from 'dotenv';
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// dotenv.config();
-// const databaseUrl = process.env.DATABASE_URL
-// //  || 
-//   // 'postgresql://postgres:RGUlXcYyOoBSguVVBMRckIQMxxfDdKML@postgres.railway.internal:5432/railway';
-// // Option 1: Use connection string (simpler)
-// const sequelize = new Sequelize(databaseUrl, {
-//   dialect: 'postgres',
-//   dialectOptions: {
-//     ssl: {
-//       require: true,
-//       rejectUnauthorized: false 
-//     }
-//   },
-//   logging: false
-// });
-// export default sequelize;
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const databaseUrl = process.env.DATABASE_URL ||
-    'postgresql://postgres:RGUlXcYyOoBSguVVBMRckIQMxxfDdKML@postgres.railway.internal:5432/railway';
+const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
-    throw new Error('DATABASE_URL is not defined');
+    throw new Error('DATABASE_URL is not defined in environment variables');
 }
 const isProduction = process.env.NODE_ENV === 'production';
 const sequelize = new sequelize_1.Sequelize(databaseUrl, {
     dialect: 'postgres',
+    logging: false,
+    // 🔥 THIS IS THE CRITICAL FIX
+    define: {
+        underscored: true, // Maps camelCase (JS) → snake_case (DB)
+        freezeTableName: false, // Allows Sequelize to pluralize table names correctly
+        timestamps: true, // Ensures createdAt/updatedAt → created_at/updated_at
+    },
     dialectOptions: isProduction
         ? {
             ssl: {
                 require: true,
-                rejectUnauthorized: false,
+                rejectUnauthorized: false, // Required for Railway/Heroku-style Postgres
             },
         }
-        : {}, // ❌ NO SSL locally
-    logging: false,
+        : undefined, // No SSL in local development (unless your local DB requires it)
 });
 exports.default = sequelize;
 //# sourceMappingURL=db.js.map
