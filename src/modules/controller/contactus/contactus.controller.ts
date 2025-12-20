@@ -19,7 +19,7 @@ class ContactController {
             const contacts = await contactHandler.getAllContacts();
             res.status(200).json(contacts);
         } catch (error) {
-            res.status(500).json({ error: "Failed to retrieve contacts" });
+            res.status(500).json({ error: "Failed to retrieve contacts"+error });
         }
     }
     async getContactById(req: any, res: any) {
