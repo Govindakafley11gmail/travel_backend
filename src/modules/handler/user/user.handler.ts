@@ -12,12 +12,13 @@ export default class UserService {
     name: string;
     email: string;
     password: string;
+    identificationNo?: string;
     role: string;
     status?: string;
     permissions?: Record<string, string[]>;
     permissionsList?: string[];
   }) {
-    const { name, email, password, role, status, permissions, permissionsList } = payload;
+    const { name, email, password, role, status, permissions, permissionsList, identificationNo } = payload;
 
     const existingUser = await userRepo.findByEmail(email);
     if (existingUser) throw new Error("User already exists");
@@ -27,6 +28,7 @@ export default class UserService {
     return userRepo.create({
       name,
       email,
+      identificationNo,
       password: hashedPassword,
       role: role || "user",
       status: status || "active",

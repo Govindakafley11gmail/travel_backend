@@ -11,7 +11,7 @@ const userRepo = new user_repository_1.default();
 class UserService {
     // Create user with permissions
     async createUser(payload) {
-        const { name, email, password, role, status, permissions, permissionsList } = payload;
+        const { name, email, password, role, status, permissions, permissionsList, identificationNo } = payload;
         const existingUser = await userRepo.findByEmail(email);
         if (existingUser)
             throw new Error("User already exists");
@@ -19,6 +19,7 @@ class UserService {
         return userRepo.create({
             name,
             email,
+            identificationNo,
             password: hashedPassword,
             role: role || "user",
             status: status || "active",

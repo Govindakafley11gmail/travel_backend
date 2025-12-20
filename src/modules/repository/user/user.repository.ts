@@ -5,6 +5,7 @@ export default class UserRepository {
     name: string;
     email: string;
     password: string;
+    identificationNo?: string;
     role: string;
     status: string;
     permissions?: Record<string, string[]>;
@@ -32,6 +33,7 @@ export default class UserRepository {
       name?: string;
       email?: string;
       role?: string;
+      identificationNo?: string;
       status?: string;
       password?: string;
       permissions?: Record<string, string[]>;
