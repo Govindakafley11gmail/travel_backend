@@ -1,13 +1,15 @@
 import { Request, Response } from "express";
 import ProductRepository, { CreateProductInput } from "../../repository/product/product.repository";
-import { upload } from "../../../middleware/upload";
+import { upload } from "../../../middleware/upload"; // ← now uses Cloudinary storage
 import ProductHandler from "../../handler/product/product.handler";
+
 const productRepo = new ProductRepository();
 const producthandler = new ProductHandler();
+
 class ProductController {
   private productRepo = new ProductRepository();
 
-  // ✅ Expose Multer middleware for routes
+  // ✅ Expose Multer middleware for routes (now uploads to Cloudinary)
   static upload = upload.array("images", 5); // up to 5 images per product
 
   /**
@@ -16,7 +18,7 @@ class ProductController {
    */
   async createProduct(req: Request, res: Response): Promise<void> {
     try {
-      // Extract form fields
+      // Extract form fields (unchanged)
       const {
         category,
         product_name,
@@ -26,13 +28,13 @@ class ProductController {
         final_price
       } = req.body;
 
-      // ✅ Safely handle file uploads
+      // ✅ Cloudinary uploads → get secure URLs
       const files = req.files as Express.Multer.File[] | undefined;
       const imageUrls = files?.map(
-        (file) => `/uploads/products/${file.filename}`
+        (file) => file.path  // ← Cloudinary secure_url
       ) || [];
 
-      // ✅ Prepare data for repository
+      // ✅ Prepare data for repository (same structure)
       const data: CreateProductInput = {
         category,
         product_name,
@@ -73,26 +75,19 @@ class ProductController {
         search: search?.toString(),
       });
 
-      // Add full URLs for images
+      // Cloudinary URLs are already full → no need to prepend host
       const data = result.rows.map(product => {
         const json = product.toJSON();
 
-        if (Array.isArray(json.images)) {
-          // Tell TypeScript: these are all strings
-          json.images = (json.images as string[]).map(
-            (img: string) => `${req.protocol}://${req.get("host")}${img.startsWith("/") ? "" : "/"}${img}`
-          );
-        } else {
-          // Wrap single string in array
-          json.images = [
-            `${req.protocol}://${req.get("host")}${(json.images as string).startsWith("/") ? "" : "/"}${json.images}`
-          ];
-        }
+        // Ensure images is always an array (defensive)
+        json.images = Array.isArray(json.images)
+          ? json.images
+          : json.images
+            ? [json.images]
+            : [];
 
         return json;
       });
-
-
 
       res.json({ success: true, count: result.count, data });
     } catch (error: any) {
@@ -115,11 +110,7 @@ class ProductController {
         return;
       }
 
-      // const productJson = product.toJSON();
-      // productJson.images = productJson.images?.map(
-      //   (img: string) => `${req.protocol}://${req.get("host")}${img}`
-      // );
-
+      // (unchanged: no image processing, just success)
       res.json({ success: true });
     } catch (error: any) {
       console.error("❌ Error fetching product:", error);
@@ -131,25 +122,26 @@ class ProductController {
     }
   }
 
+  /**
+   * @desc Update product
+   */
   async updateProduct(req: Request, res: Response) {
     try {
       const { id } = req.params;
 
-
-      // ✅ Safely handle file uploads
+      // ✅ Cloudinary uploads → get secure URLs
       const files = req.files as Express.Multer.File[] | undefined;
       const imageUrls = files?.map(
-        (file) => `/uploads/products/${file.filename}`
+        (file) => file.path  // ← Cloudinary secure_url
       ) || [];
 
-      // ✅ Prepare data for repository
+      // Prepare data (same as before)
       const data: CreateProductInput = {
         ...req.body,
         images: imageUrls,
       };
 
-
-      // Recalculate final_price if original_price or discount_percent is updated
+      // Recalculate final_price if original_price or discount_percent is updated (unchanged)
       if (data.original_price || data.discount_percent) {
         const product = await this.productRepo.findById(Number(id));
         if (!product) return res.status(404).json({ success: false, message: "Product not found" });
@@ -168,7 +160,7 @@ class ProductController {
     }
   }
 
-  // DELETE PRODUCT
+  // DELETE PRODUCT (unchanged, but you could add Cloudinary deletion later)
   async deleteProduct(req: Request, res: Response) {
     try {
       const { id } = req.params;
@@ -179,16 +171,15 @@ class ProductController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  // Order methods remain unchanged
   async createOrder(req: Request, res: Response) {
     try {
-
       const { customer, items, subtotal, total } = req.body;
 
       if (!customer || !items || !subtotal || !total) {
         return res.status(400).json({ error: "Missing required fields" });
       }
-
-      // create a repository instance for this static method
 
       const order = await producthandler.CreateOrder(customer, items, subtotal, total);
       if (!order.success) {
@@ -203,36 +194,36 @@ class ProductController {
       return res.status(500).json({ error: error.message || "Server error" });
     }
   }
+
   async updateOrder(req: Request, res: Response) {
-  try {
-    const { id } = req.params; // get order ID from URL parameter
-    const { name, email, phone, status, items, subtotal, total } = req.body;
+    try {
+      const { id } = req.params;
+      const { name, email, phone, status, items, subtotal, total } = req.body;
 
-    if (!id) {
-      return res.status(400).json({ error: "Order ID is required" });
+      if (!id) {
+        return res.status(400).json({ error: "Order ID is required" });
+      }
+
+      if (!items && !subtotal && !total) {
+        return res.status(400).json({ error: "At least one field is required to update" });
+      }
+
+      const order = await producthandler.UpdateOrder(id, { name, email, phone, status, items, subtotal, total });
+
+      if (!order.success) {
+        return res.status(400).json({ error: order.message });
+      }
+
+      return res.status(200).json({
+        status: true,
+        message: "Order updated successfully",
+        data: order.data,
+      });
+    } catch (error: any) {
+      console.error("Error updating order:", error);
+      return res.status(500).json({ error: error.message || "Server error" });
     }
-
-    if ( !items && !subtotal && !total) {
-      return res.status(400).json({ error: "At least one field is required to update" });
-    }
-
-    // Call your handler/repository update method
-    const order = await producthandler.UpdateOrder(id, { name, email, phone, status, items, subtotal, total});
-
-    if (!order.success) {
-      return res.status(400).json({ error: order.message });
-    }
-
-    return res.status(200).json({
-      status: true,
-      message: "Order updated successfully",
-      data: order.data, // optionally return the updated order
-    });
-  } catch (error: any) {
-    console.error("Error updating order:", error);
-    return res.status(500).json({ error: error.message || "Server error" });
   }
-}
 
   async getOrders(req: Request, res: Response) {
     try {
