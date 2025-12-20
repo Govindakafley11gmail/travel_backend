@@ -1,59 +1,6 @@
-// require('dotenv').config();
+// config.js (or config/config.js if using sequelize-cli structure)
 
-// module.exports = {
-//   development: {
-//     username: process.env.DB_USERNAME,
-//     password: process.env.DB_PASSWORD,
-//     database: process.env.DB_NAME,
-//     host: process.env.DB_HOST,
-//     port: Number(process.env.DB_PORT),
-//     dialect: process.env.DB_DIALECT,
-//   },
-
-//   test: {
-//     username: process.env.DB_TEST_USERNAME,
-//     password: process.env.DB_TEST_PASSWORD,
-//     database: process.env.DB_TEST_NAME,
-//     host: process.env.DB_TEST_HOST,
-//     dialect: process.env.DB_DIALECT,
-//   },
-
-//   production: {
-//     username: process.env.DB_PROD_USERNAME,
-//     password: process.env.DB_PROD_PASSWORD,
-//     database: process.env.DB_PROD_NAME,
-//     host: process.env.DB_PROD_HOST,
-//     dialect: process.env.DB_DIALECT,
-//   },
-// };
-
-
-// require("dotenv").config();
-
-// module.exports = {
-//   development: {
-//     dialect: "postgres",
-//     url: process.env.DATABASE_URL,
-//   },
-
-//   test: {
-//     dialect: "postgres",
-//     url: process.env.DATABASE_URL,
-//   },
-
-//   production: {
-//     dialect: "postgres",
-//     url: process.env.DATABASE_URL,
-//     dialectOptions: {
-//       ssl: {
-//         require: true,
-//         rejectUnauthorized: false,
-//       },
-//     },
-//   },
-// };
-
-require("dotenv").config();
+require("dotenv").config(); // For local dev if needed
 
 module.exports = {
   production: {
@@ -61,13 +8,15 @@ module.exports = {
     password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE,
     host: process.env.PGHOST,
-    port: Number(process.env.PGPORT),
+    port: Number(process.env.PGPORT || 5432),
     dialect: "postgres",
     dialectOptions: {
       ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
+        require: true,           // Enforce SSL
+        rejectUnauthorized: false // Accept Railway's self-signed cert
+      }
     },
-  },
+    // Optional: disable logging in production if you don't want verbose output
+    logging: false
+  }
 };

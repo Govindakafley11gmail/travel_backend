@@ -33,7 +33,7 @@ if (!databaseUrl) {
 const isProduction = process.env.NODE_ENV === 'production';
 const sequelize = new sequelize_1.Sequelize(databaseUrl, {
     dialect: 'postgres',
-    dialectOptions: !isProduction
+    dialectOptions: isProduction
         ? {
             ssl: {
                 require: true,
