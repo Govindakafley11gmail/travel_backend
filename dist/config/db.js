@@ -25,5 +25,17 @@ const sequelize = new sequelize_1.Sequelize(databaseUrl, {
         timestamps: true,
     },
 });
+async function testConnection() {
+    try {
+        await sequelize.authenticate();
+        console.log('✅ Database connection established successfully');
+        return true;
+    }
+    catch (error) {
+        console.error('❌ Unable to connect to database:', error);
+        return false;
+    }
+}
+testConnection();
 exports.default = sequelize;
 //# sourceMappingURL=db.js.map
