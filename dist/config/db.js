@@ -14,24 +14,20 @@ if (!databaseUrl) {
     throw new Error('DATABASE_URL is missing. Make sure your Postgres plugin is in the same project and deployed.');
 }
 const sequelize = new sequelize_1.Sequelize(databaseUrl, {
-    dialect: 'postgres',
+    dialect: "postgres",
     logging: false,
     dialectOptions: {
         ssl: {
             require: true,
-            rejectUnauthorized: false,
-        },
+            rejectUnauthorized: false
+        }
     },
     pool: {
         max: 5,
         min: 0,
-        acquire: 30000,
-        idle: 10000
-    },
-    define: {
-        underscored: true,
-        timestamps: true,
-    },
+        idle: 10000,
+        acquire: 30000
+    }
 });
 async function testConnection() {
     try {

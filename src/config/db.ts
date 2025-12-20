@@ -17,26 +17,24 @@ if (!databaseUrl) {
   );
 }
 
+
 const sequelize = new Sequelize(databaseUrl, {
-  dialect: 'postgres',
+  dialect: "postgres",
   logging: false,
   dialectOptions: {
     ssl: {
       require: true,
-      rejectUnauthorized: false,
-    },
+      rejectUnauthorized: false
+    }
   },
   pool: {
     max: 5,
     min: 0,
-    acquire: 30000,
-    idle: 10000
-  },
-  define: {
-    underscored: true,
-    timestamps: true,
-  },
+    idle: 10000,
+    acquire: 30000
+  }
 });
+
 
 async function testConnection() {
   try {
