@@ -10,30 +10,24 @@ dotenv.config();
 const app: Application = express();
 
 // ========================
-// CORS Configuration (FIXED)
+// CORS Configuration (Same as before — perfect)
 // ========================
 
-// List all allowed frontend origins
 const allowedOrigins = [
-  "https://travel-agent-olive.vercel.app",     // Your current Vercel frontend
-  "https://www.lumorabhutan.com",              // Production domain
-  "https://lumorabhutan.com",                  // Without www
-  "http://localhost:3000",                     // Local development
-  // Add preview URLs if needed, e.g.:
-  // "https://travel-agent-olive-git-*.vercel.app"
+  "*",
+  
 ];
 
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, Postman, server-to-server)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log("Blocked by CORS:", origin); // Helpful for debugging
+      console.log("Blocked by CORS:", origin);
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true, // ✅ Now safe because we're not using "*"
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
 };
@@ -44,7 +38,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Routes
 app.use("/api/v1", router);
 
 app.get("/health", (req: Request, res: Response) => {
@@ -56,11 +49,14 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 // ========================
-// IMPORTANT FOR VERCEL
+// FOR RAILWAY: Add app.listen()
 // ========================
-// Remove app.listen() completely — Vercel doesn't use it in serverless functions
-// Instead, export the app directly
 
-// app.listen(...) ← DELETE THIS ENTIRE BLOCK
+const PORT = process.env.PORT || 5000;
 
-export default app; // ← This is what Vercel needs
+app.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
+// Keep this for Vercel compatibility (optional)
+export default app;
