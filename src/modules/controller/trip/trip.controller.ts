@@ -7,7 +7,7 @@ const tripRepo = new TripsRepository();
 class TripController {
 
   // ✅ Expose Multer middleware for routes
-  static upload = tripupload.array("images", 5); // up to 5 images per trip
+  static upload = tripupload.array("images", 5);
 
   /**
    * @desc Create a new trip
@@ -15,19 +15,15 @@ class TripController {
    */
   async createTrip(req: Request, res: Response): Promise<void> {
     try {
-      // ✅ Handle Cloudinary file uploads
       const files = req.files as Express.Multer.File[] | undefined;
-      
-      // Get Cloudinary URLs (not local paths)
+
       const imageUrls = files?.map(file => (file as any).path) || [];
 
-      // ✅ Prepare data for repository
       const data = {
         ...req.body,
-        images: imageUrls, // Now contains full Cloudinary URLs
+        images: imageUrls,
       };
 
-      // ✅ Save trip
       const trip = await tripRepo.createTrip(data);
 
       res.status(201).json({
@@ -53,15 +49,14 @@ class TripController {
     try {
       const { isFirsttime, category } = req.query;
       const filters: any = {};
+
       if (isFirsttime) filters.isFirsttime = isFirsttime;
       if (category) filters.category = category;
 
       const trips = await tripRepo.getAllTrips(filters);
 
-      // ✅ Cloudinary URLs are already complete - no need to modify
       const data = trips.map(trip => {
         const json = trip.toJSON();
-        // Ensure images is always an array
         if (!Array.isArray(json.images)) {
           json.images = json.images ? [json.images] : [];
         }
@@ -88,7 +83,6 @@ class TripController {
         return res.status(404).json({ success: false, message: "Trip not found" });
       }
 
-      // ✅ Cloudinary URLs are already complete
       const json = trip.toJSON();
       if (!Array.isArray(json.images)) {
         json.images = json.images ? [json.images] : [];
@@ -105,23 +99,35 @@ class TripController {
    * @desc Update a trip
    * @route PUT /api/trips/:id
    */
-  async updateTrip(req: Request, res: Response) {
+  async updateTrip(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
-      const tripData = { ...req.body };
-      
-      // ✅ If images are uploaded, use Cloudinary URLs
-      if (req.files && Array.isArray(req.files)) {
-        tripData.images = (req.files as Express.Multer.File[]).map(
-          (file) => (file as any).path // Cloudinary URL
+      const tripData: any = { ...req.body };
+
+      // ✅ Update images ONLY if new files are uploaded
+      if (Array.isArray(req.files) && req.files.length > 0) {
+        tripData.images = req.files.map(
+          (file: any) => file.path // Cloudinary URL
         );
+      } else {
+        // ❌ Prevent accidental overwrite
+        delete tripData.images;
       }
 
       const trip = await tripRepo.updateTrip(Number(id), tripData);
-      res.json({ message: "Trip updated successfully", data: trip });
-    } catch (error) {
-      res.status(500).json({ error: error instanceof Error ? error.message : "An error occurred" });
+
+      res.json({
+        success: true,
+        message: "Trip updated successfully",
+        data: trip,
+      });
+    } catch (error: any) {
+      console.error("❌ Error updating trip:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "An error occurred",
+      });
     }
   }
 
